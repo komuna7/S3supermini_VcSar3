@@ -24,7 +24,10 @@ constexpr int SCREEN_HEIGHT = 64;
 constexpr char STATIC_GTFS_URL[] = "https://www.vivi.lv/uploads/GTFS.zip";
 constexpr char REALTIME_URL[] =
     "https://modus.pv.lv/transit_realtime.RealTime/GetFeedTripUpdate";
-constexpr uint32_t STATIC_REFRESH_MS = 24UL * 60UL * 60UL * 1000UL;
+// Nightly restart rebuilds today's/tomorrow's trips and rechecks GTFS.
+constexpr int DAILY_RESTART_HOUR = 3;
+// Must exceed one hour so a restart inside DAILY_RESTART_HOUR cannot repeat.
+constexpr uint32_t DAILY_RESTART_MIN_UPTIME_MS = 70UL * 60UL * 1000UL;
 constexpr uint32_t REALTIME_REFRESH_MS = 2UL * 60UL * 1000UL;
 constexpr size_t DOWNLOAD_BUFFER_SIZE = 2048;
 constexpr size_t MAX_STATIC_GTFS_BYTES = 11UL * 1024UL * 1024UL;
@@ -1211,7 +1214,21 @@ void setup() {
                 REALTIME_URL);
 }
 
+void restartNightlyIfDue() {
+  static uint32_t lastCheckAt = 0;
+  if (millis() - lastCheckAt < 60000UL) return;
+  lastCheckAt = millis();
+  struct tm now;
+  if (millis() < DAILY_RESTART_MIN_UPTIME_MS || !getLocalTime(&now, 0)) return;
+  if (now.tm_hour != DAILY_RESTART_HOUR || now.tm_yday == loadedYearDay) return;
+  appState = AppState::starting;
+  drawStatus();
+  delay(500);
+  ESP.restart();
+}
+
 void loop() {
+  restartNightlyIfDue();
   webServer.handleClient();
   if (millis() - lastRealtimeRefresh >= REALTIME_REFRESH_MS) refreshRealtime();
   handleListButton();

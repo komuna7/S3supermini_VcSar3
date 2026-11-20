@@ -211,6 +211,14 @@ saglabājas arī pēc jaunas programmas ielādes:
 4. **Reāllaiks:** ik pēc 2 minūtēm
    `https://modus.pv.lv/transit_realtime.RealTime/GetFeedTripUpdate`
    (GTFS-Realtime protobuf), kavējumi tiek pievienoti reisiem.
+5. **Nakts atjaunošana:** katru nakti **03:00** ESP pats pārstartējas. Startējot
+   tas no jauna izvēlas Wi-Fi, pārbauda Vivi GTFS (lejupielādē tikai tad, ja
+   fails ir mainījies) un veido reisus jaunajai dienai un rītdienai. Ja
+   startēšana bija neveiksmīga (piem., Vivi nebija pieejams), nākamajā naktī
+   ESP mēģina vēlreiz.
+   - Restarts notiek tikai tad, ja ESP strādā ilgāk par 70 min un saraksts
+     nav jau veidots šodien, tāpēc tas nevar atkārtoties.
+   - Stundu maina `DAILY_RESTART_HOUR` kodā.
 
 ## Ierobežojumi
 
@@ -220,8 +228,11 @@ saglabājas arī pēc jaunas programmas ielādes:
   lejupielāde neizdodas, ekrāns rāda kļūdu līdz nākamajai pārstartēšanai.
 - Ja GTFS kādreiz kļūs lielāks par ~1,8 MB, tas vairs neietilps. Risinājums ir
   microSD karte caur SPI (brīvie pini 10–13). Tas vēl nav ieviests.
-- **Statiskais saraksts tiek pārbaudīts tikai startējot.** Lai iegūtu jaunu
-  Vivi sarakstu, ESP jāpārstartē (`R` vai barošana).
+- Statiskais saraksts tiek pārbaudīts startējot un ik nakti 03:00. Ja Vivi
+  sarakstu atjaunina dienas laikā, izmaiņas parādās nākamajā rītā (vai uzreiz
+  pēc `R`).
+- Ja nakts restartā Vivi nav pieejams un vecais GTFS jau izdzēsts (sk. augstāk),
+  ekrāns līdz nākamajai naktij vai `R` rāda kļūdu.
 - HTTPS sertifikāti netiek pārbaudīti (`setInsecure()`).
 - Nav OTA atjauninājumu: jauna programma tiek ielādēta tikai caur USB.
 - OLED fonts nerāda garumzīmes, tāpēc ekrāna teksti ir bez tām.
@@ -248,3 +259,5 @@ un `vilcienu_saraksts_v3` (V3 animācijas). Atšķirības Super Mini versijā:
 2. Vecais GTFS tiek dzēsts pirms lejupielādes, ja vietas nepietiek.
 3. Divi Wi-Fi tīkli ar automātisku izvēli pēc signāla un pogas izvēli.
 4. V3 galvenes, animācijas un rīks ir iekļauti šajā mapē.
+5. Nakts restarts 03:00. Oriģinālā saraksts tika veidots tikai startējot, tāpēc
+   pēc pusnakts ekrāns turpināja rādīt vakardienas reisus.
