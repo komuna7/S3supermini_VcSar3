@@ -1227,11 +1227,52 @@ void restartNightlyIfDue() {
   ESP.restart();
 }
 
+constexpr uint32_t RESTART_HOLD_MS = 15000;
+constexpr uint32_t RESTART_HINT_MS = 3000;
+
+// Returns true while the restart countdown owns the screen.
+bool handleRestartHold() {
+  static uint32_t pressedSince = 0;
+  static bool holding = false;
+  if (digitalRead(LIST_BUTTON_PIN) != LOW) {
+    holding = false;
+    return false;
+  }
+  const uint32_t now = millis();
+  if (!holding) {
+    holding = true;
+    pressedSince = now;
+  }
+  const uint32_t held = now - pressedSince;
+  if (held < RESTART_HINT_MS) return false;
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  if (held >= RESTART_HOLD_MS) {
+    centeredText("RESTARTS...", 28);
+    display.display();
+    delay(500);
+    ESP.restart();
+  }
+  centeredText("TURI POGU", 8);
+  centeredText("RESTARTS PEC " + String((RESTART_HOLD_MS - held + 999) / 1000) + "s", 24);
+  centeredText("ATLAID = ATCELT", 38);
+  display.drawRect(0, 52, SCREEN_WIDTH, 8, SSD1306_WHITE);
+  display.fillRect(1, 53, ((held - RESTART_HINT_MS) * (SCREEN_WIDTH - 2)) /
+                              (RESTART_HOLD_MS - RESTART_HINT_MS), 6, SSD1306_WHITE);
+  display.display();
+  return true;
+}
+
 void loop() {
   restartNightlyIfDue();
   webServer.handleClient();
   if (millis() - lastRealtimeRefresh >= REALTIME_REFRESH_MS) refreshRealtime();
   handleListButton();
+  if (handleRestartHold()) {
+    delay(20);
+    return;
+  }
   if (showingUpcomingList && millis() - lastListInteraction >= LIST_VIEW_TIMEOUT_MS) {
     showingUpcomingList = false;
   }

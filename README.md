@@ -166,7 +166,13 @@ Ja neviens tīkls nav redzams, izmanto iepriekšējo izvēli.
   (3 vilcieni lapā, atiešana/pienākšana, kavējumi ieskaitīti). Katrs nākamais
   spiediens rāda nākamo lapu, pēc pēdējās atkal pirmo. Pēc 8 s bez spiediena
   ekrāns atgriežas galvenajā skatā (2 px josla apakšā rāda atlikušo laiku).
-- **`R` poga:** pārstartē ESP (no jauna skenē Wi-Fi un pārbauda GTFS).
+- **Poga turēta 15 s:** pārstartē ESP. Pēc 3 s turēšanas OLED rāda
+  "TURI POGU / RESTARTS PEC Xs" un progresa joslu. Ja pogu atlaiž agrāk,
+  restarts tiek atcelts. Darbojas, kad ESP ir startējis (arī kļūdas ekrānā),
+  bet ne startēšanas laikā vai `Melluzi-Standalone` portālā.
+- **`R` poga:** pārstartē ESP uzreiz.
+
+Restartā ESP no jauna skenē Wi-Fi, pārbauda GTFS un veido sarakstu.
 
 ## Tīmekļa lapa
 
